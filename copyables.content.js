@@ -19,19 +19,67 @@ var script = [
  * Context menu item (background page)
  */
 
-var lastElement;
+var lastElement, lastContext = {x: 0, y: 0};
 document.addEventListener('contextmenu', function(e) {
 	lastElement = e.target;
+	lastContext.x = e.x;
+	lastContext.y = e.y;
 });
 
 chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
-	if (message.getLastElement) {
-		// For some reason, this is executed 5 times, 4 times without lastElement...
-		if (lastElement) {
+	if (lastElement) {
+		if (message.getLastElement) {
 			sendResponse(lastElement.textContent.trim());
+		}
+
+		if (message.getFirstImage) {
+			var style = document.createElement('style');
+			style.textContent = '.copyables-hide { display: none !important; }';
+			document.head.insertBefore(style, document.head.firstChild);
+
+			var src = '';
+			if (!(src = tryElementImage(lastElement))) {
+				hideElement(lastElement);
+
+				var el = document.elementFromPoint(lastContext.x, lastContext.y);
+				el && (src = tryElementImage(el));
+			}
+
+			unhideElements();
+
+			if (src) {
+				sendResponse(src);
+			}
+
+			style.remove();
 		}
 	}
 });
+
+function tryElementImage(el) {
+	if (el.nodeName == 'IMG' && el.src) {
+		return el.src;
+	}
+
+	var bgImage = getComputedStyle(el).backgroundImage;
+	if (bgImage && bgImage != 'none') {
+		var match = bgImage.match(/^url\((.+)\)$/);
+		if (match) {
+			bgImage = match[1];
+		}
+		return bgImage;
+	}
+}
+
+function hideElement(el) {
+	el.classList.add('copyables-hide');
+}
+
+function unhideElements() {
+	[].forEach.call(document.querySelectorAll('.copyables-hide'), function(el) {
+		el.classList.remove('copyables-hide');
+	});
+}
 
 
 
