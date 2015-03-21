@@ -16,11 +16,13 @@ chrome.contextMenus.create({
 	"contexts": ['all'],
 	"onclick": function(info, tab) {
 		chrome.tabs.sendMessage(tab.id, {"getFirstImage": true}, function(response) {
-			chrome.tabs.create({
-				"url": response,
-				"active": true,
-				"index": tab.index + 1,
-			});
+			if (response) {
+				chrome.tabs.create({
+					"url": response,
+					"active": true,
+					"index": tab.index + 1,
+				});
+			}
 		});
 	}
 });

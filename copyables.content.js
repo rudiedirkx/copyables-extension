@@ -34,7 +34,7 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 
 		if (message.getFirstImage) {
 			var style = document.createElement('style');
-			style.textContent = '.copyables-hide { display: none !important; }';
+			style.textContent = '.copyables-hide { visibility: hidden !important; }';
 			document.head.insertBefore(style, document.head.firstChild);
 
 			var src = '';
@@ -42,11 +42,22 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 				hideElement(lastElement);
 
 				var el = document.elementFromPoint(lastContext.x, lastContext.y);
-				el && (src = tryElementImage(el));
+				if (el && !(src = tryElementImage(el))) {
+					hideElement(el);
+
+					var el = document.elementFromPoint(lastContext.x, lastContext.y);
+					if (el && !(src = tryElementImage(el))) {
+						hideElement(el);
+
+						var el = document.elementFromPoint(lastContext.x, lastContext.y);
+						if (el && !(src = tryElementImage(el))) {
+
+						}
+					}
+				}
 			}
 
 			unhideElements();
-
 			if (src) {
 				sendResponse(src);
 			}
@@ -57,6 +68,15 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function tryElementImage(el) {
+	if (el.nodeName == 'HTML') {
+		var src = tryElementImage(document.body);
+		if (src) {
+			return src;
+		}
+	}
+
+	console.log('[copyables] Trying', el);
+
 	if (el.nodeName == 'IMG' && el.src) {
 		return el.src;
 	}
@@ -69,6 +89,8 @@ function tryElementImage(el) {
 		}
 		return bgImage;
 	}
+
+	return '';
 }
 
 function hideElement(el) {
