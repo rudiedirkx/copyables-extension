@@ -3,16 +3,18 @@
  * Devtools helpers
  */
 
-var script = [
-	'var copyToClipboard = ' + String(copyToClipboard) + ';',
-	'window.cpLinkLabel = ' + String(cpLinkLabel) + ';',
-	'window.cpLinkURL = ' + String(cpLinkURL) + ';',
-].join("\n");
-(document.head || document.body || document.documentElement).appendChild((function(el) {
-	el.innerHTML = '(function() { ' + script + ' })();';
-	return el;
-})(document.createElement('script')));
-
+if ( document.documentElement && document.documentElement.nodeName == 'HTML' ) {
+	var script = [
+		'var copyToClipboard = ' + String(copyToClipboard) + ';',
+		'window.cpLinkLabel = ' + String(cpLinkLabel) + ';',
+		'window.cpLinkURL = ' + String(cpLinkURL) + ';',
+	].join("\n");
+	(document.head || document.body || document.documentElement).appendChild((function(el) {
+		el.dataset.origin = 'copyables';
+		el.innerHTML = '(function() { ' + script + ' })();';
+		return el;
+	})(document.createElement('script')));
+}
 
 
 /**
