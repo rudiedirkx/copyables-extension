@@ -39,23 +39,16 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 			style.textContent = '.copyables-hide { visibility: hidden !important; }';
 			document.head.insertBefore(style, document.head.firstChild);
 
+			var el = lastElement;
 			var src = '';
-			if (!(src = tryElementImage(lastElement))) {
-				hideElement(lastElement);
-
-				var el = document.elementFromPoint(lastContext.x, lastContext.y);
-				if (el && !(src = tryElementImage(el))) {
+			for (var i=0; i<20; i++) {
+				src = tryElementImage(el);
+				if (src || el.nodeName == 'HTML') {
+					break;
+				}
+				else {
 					hideElement(el);
-
-					var el = document.elementFromPoint(lastContext.x, lastContext.y);
-					if (el && !(src = tryElementImage(el))) {
-						hideElement(el);
-
-						var el = document.elementFromPoint(lastContext.x, lastContext.y);
-						if (el && !(src = tryElementImage(el))) {
-
-						}
-					}
+					el = document.elementFromPoint(lastContext.x, lastContext.y);
 				}
 			}
 
@@ -78,6 +71,8 @@ function tryElementImage(el) {
 	}
 
 	console.log('[copyables] Trying', el);
+
+	// @todo Catch `[srcset]`, `<picture>` etc
 
 	if (el.nodeName == 'IMG' && el.src) {
 		return el.src;
