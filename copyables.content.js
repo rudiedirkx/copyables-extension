@@ -36,30 +36,29 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 
 		if (message.getFirstImage) {
 			var style = document.createElement('style');
-			style.textContent = '.copyables-hide { visibility: hidden !important; } :before, :after { visibility: hidden !important; }';
+			style.textContent = ':before, :after { visibility: hidden !important; }';
 			document.head.insertBefore(style, document.head.firstChild);
 
 			console.log('[copyables] lastContext', lastContext);
 
-			var el = document.elementFromPoint(lastContext.x, lastContext.y);
+			// Trigger reflow?
+			var x = lastElement.offsetHeight;
+
+			// Evaluate for all elements under the pointer
+			var els = document.elementsFromPoint(lastContext.x, lastContext.y);
 			var src = '';
-			for (var i=0; i<20; i++) {
+			for (var i=0; i<els.length; i++) {
+				var el = els[i];
 				src = tryElementImage(el);
-				if (src || el.nodeName == 'HTML') {
+				if (src) {
 					break;
 				}
-				else {
-					hideElement(el);
-					el = document.elementFromPoint(lastContext.x, lastContext.y);
-				}
 			}
 
-			console.log('[copyables] src', src);
-			if (src) {
-				open(src);
-			}
+			// Send result, empty or not, back to background script
+			console.log('[copyables] src', '"' + src + '"');
+			sendResponse(src);
 
-			unhideElements();
 			style.remove();
 		}
 	}
@@ -72,8 +71,6 @@ function tryElementImage(el) {
 			return src;
 		}
 	}
-
-	var x = el.offsetHeight;
 
 	console.log('[copyables] Trying', el);
 
@@ -93,16 +90,6 @@ function tryElementImage(el) {
 	}
 
 	return '';
-}
-
-function hideElement(el) {
-	el.classList.add('copyables-hide');
-}
-
-function unhideElements() {
-	[].forEach.call(document.querySelectorAll('.copyables-hide'), function(el) {
-		el.classList.remove('copyables-hide');
-	});
 }
 
 
