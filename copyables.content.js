@@ -36,10 +36,12 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 
 		if (message.getFirstImage) {
 			var style = document.createElement('style');
-			style.textContent = '.copyables-hide { visibility: hidden !important; }';
+			style.textContent = '.copyables-hide { visibility: hidden !important; } :before, :after { visibility: hidden !important; }';
 			document.head.insertBefore(style, document.head.firstChild);
 
-			var el = lastElement;
+			console.log('[copyables] lastContext', lastContext);
+
+			var el = document.elementFromPoint(lastContext.x, lastContext.y);
 			var src = '';
 			for (var i=0; i<20; i++) {
 				src = tryElementImage(el);
@@ -52,11 +54,12 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 				}
 			}
 
-			unhideElements();
+			console.log('[copyables] src', src);
 			if (src) {
-				sendResponse(src);
+				open(src);
 			}
 
+			unhideElements();
 			style.remove();
 		}
 	}
@@ -69,6 +72,8 @@ function tryElementImage(el) {
 			return src;
 		}
 	}
+
+	var x = el.offsetHeight;
 
 	console.log('[copyables] Trying', el);
 

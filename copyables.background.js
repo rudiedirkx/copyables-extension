@@ -4,6 +4,7 @@ chrome.contextMenus.create({
 	"contexts": ['all'],
 	"onclick": function(info, tab) {
 		chrome.tabs.sendMessage(tab.id, {"getFirstImage": true}, function(response) {
+console.log('"' + response + '"');
 			if (response) {
 				chrome.tabs.create({
 					"url": response,
