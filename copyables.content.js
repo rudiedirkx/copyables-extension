@@ -82,7 +82,7 @@ function tryElementImage(el) {
 
 	var bgImage = getComputedStyle(el).backgroundImage;
 	if (bgImage && bgImage != 'none') {
-		var match = bgImage.match(/^url\((.+)\)$/);
+		var match = bgImage.match(/^url\(['"]*(.+?)['"]*\)$/);
 		if (match) {
 			bgImage = match[1];
 		}
