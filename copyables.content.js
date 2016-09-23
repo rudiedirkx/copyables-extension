@@ -74,13 +74,25 @@ function tryElementImage(el) {
 
 	console.log('[copyables] Trying', el);
 
+	var styles = getComputedStyle(el);
+	var opacity = styles.opacity;
+	var visibility = styles.visibility;
+
+	if (parseFloat(opacity) === 0 || visibility === 'hidden') {
+		return '';
+	}
+
 	// @todo Catch `[srcset]`, `<picture>` etc
+
+	if (el.nodeName == 'VIDEO' && el.currentSrc) {
+		return el.currentSrc;
+	}
 
 	if (el.nodeName == 'IMG' && el.src) {
 		return el.src;
 	}
 
-	var bgImage = getComputedStyle(el).backgroundImage;
+	var bgImage = styles.backgroundImage;
 	if (bgImage && bgImage != 'none') {
 		var match = bgImage.match(/^url\(['"]*(.+?)['"]*\)$/);
 		if (match) {
