@@ -56,7 +56,7 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 			}
 
 			// Send result, empty or not, back to background script
-			console.log('[copyables] src', '"' + src + '"');
+			console.log('[copyables] Found', '"' + src + '"');
 			sendResponse(src);
 
 			style.remove();
@@ -94,11 +94,14 @@ function tryElementImage(el) {
 
 	var bgImage = styles.backgroundImage;
 	if (bgImage && bgImage != 'none') {
-		var match = bgImage.match(/^url\(['"]*(.+?)['"]*\)$/);
+		var match = bgImage.match(/url\(['"]?(.+?)['"]?\)/);
 		if (match) {
-			bgImage = match[1];
+			return match[1];
 		}
-		return bgImage;
+
+		if (bgImage.substr(0, 5) === 'data:') {
+			return bgImage;
+		}
 	}
 
 	return '';
