@@ -92,7 +92,27 @@ function tryElementImage(el) {
 		return el.src;
 	}
 
-	var bgImage = styles.backgroundImage;
+	var src = tryElementBackgroundImage(styles.backgroundImage);
+	if (src) {
+		return src;
+	}
+
+	var styles = getComputedStyle(el, '::before');
+	src = tryElementBackgroundImage(styles.backgroundImage);
+	if (src) {
+		return src;
+	}
+
+	var styles = getComputedStyle(el, '::after');
+	src = tryElementBackgroundImage(styles.backgroundImage);
+	if (src) {
+		return src;
+	}
+
+	return '';
+}
+
+function tryElementBackgroundImage(bgImage) {
 	if (bgImage && bgImage != 'none') {
 		var match = bgImage.match(/url\(['"]?(.+?)['"]?\)/);
 		if (match) {
