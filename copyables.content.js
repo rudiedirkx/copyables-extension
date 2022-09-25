@@ -1,19 +1,18 @@
+function copyToClipboard(text, done) {
+	var ta = document.createElement('textarea');
+	ta.value = text;
+	document.body.appendChild(ta);
+	ta.select();
 
-/**
- * Devtools helpers
- */
+	// Method 1: doesn't seem to work in content scripts...
+	document.execCommand('copy');
 
-if ( document.documentElement && document.documentElement.nodeName == 'HTML' ) {
-	var script = [
-		'var copyToClipboard = ' + String(copyToClipboard) + ';',
-		'window.cpLinkLabel = ' + String(cpLinkLabel) + ';',
-		'window.cpLinkURL = ' + String(cpLinkURL) + ';',
-	].join("\n");
-	(document.head || document.body || document.documentElement).appendChild((function(el) {
-		el.dataset.origin = 'copyables';
-		el.innerHTML = '(function() { ' + script + ' })();';
-		return el;
-	})(document.createElement('script')));
+	// Method 2: keep the text in the textarea selected until the copy
+	// trigger is done: the normal copy procedure will have copied the text
+	requestAnimationFrame(function() {
+		document.body.removeChild(ta);
+		done && done();
+	});
 }
 
 
@@ -28,10 +27,12 @@ document.addEventListener('contextmenu', function(e) {
 	lastContext.y = e.y;
 });
 
-chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (lastElement) {
 		if (message.getLastElement) {
-			sendResponse(lastElement.textContent.trim());
+			const text = lastElement.textContent.trim();
+			copyToClipboard(text);
+			sendResponse(text);
 		}
 
 		if (message.getFirstImage) {
@@ -39,7 +40,7 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 			style.textContent = ':before, :after { visibility: hidden !important; }';
 			document.head.insertBefore(style, document.head.firstChild);
 
-			console.log('[copyables] lastContext', lastContext);
+			console.debug('[copyables] lastContext', lastContext);
 
 			// Trigger reflow?
 			var x = lastElement.offsetHeight;
@@ -56,7 +57,7 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 			}
 
 			// Send result, empty or not, back to background script
-			console.log('[copyables] Found', '"' + src + '"');
+			console.debug('[copyables] Found', '"' + src + '"');
 			sendResponse(src);
 
 			style.remove();
@@ -72,7 +73,7 @@ function tryElementImage(el) {
 		}
 	}
 
-	console.log('[copyables] Trying', el);
+	console.debug('[copyables] Trying', el);
 
 	var styles = getComputedStyle(el);
 	var opacity = styles.opacity;
@@ -135,6 +136,9 @@ function tryElementBackgroundImage(bgImage) {
 
 document.addEventListener('copy', function(e) {
 	if ( document.activeElement.nodeName == 'A' ) {
-		cpLinkLabel();
+		const el = document.activeElement;
+		copyToClipboard(el.textContent.trim(), function() {
+			el.focus();
+		});
 	}
 });
