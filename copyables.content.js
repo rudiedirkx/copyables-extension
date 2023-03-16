@@ -37,7 +37,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 		if (message.getFirstImage) {
 			var style = document.createElement('style');
-			style.textContent = ':before, :after { visibility: hidden !important; }';
+			style.textContent = `
+				* { pointer-events: auto !important; }
+				:before, :after { visibility: hidden !important; }
+			`;
 			document.head.insertBefore(style, document.head.firstChild);
 
 			console.debug('[copyables] lastContext', lastContext);
