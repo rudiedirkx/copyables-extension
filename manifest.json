@@ -1,6 +1,6 @@
 {
 	"name": "Copyables",
-	"version": "1.9",
+	"version": "1.10",
 	"manifest_version": 3,
 
 	"description": "Makes the text/label of focused links copyable. Also via contextmenu.",
